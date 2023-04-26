@@ -28,3 +28,5 @@ func main() {
 
 	log.Fatal(router.Run(":" + port))
 }
+
+//part 3
