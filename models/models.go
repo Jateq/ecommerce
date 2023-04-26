@@ -8,7 +8,8 @@ import (
 type User struct {
 	//actually go doesn't have support of json without this ` ` symbols
 	// and also _id is for mongoDB because it stores like that
-	// bson because we are referring to other structs
+	// bson - Binary Json for mongoDB actually
+	// so basically third "column" used to specify how struct should be encoded and decoded when marshaling and unmarshaling
 	ID             primitive.ObjectID `json:"_id" bson:"_id"`
 	FirstName      *string            `json:"first_name" validate:"required,min=2,max=30"'`
 	LastName       *string            `json:"last_name" validate:"required, min=2,max=30"`
