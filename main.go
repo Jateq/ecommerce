@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Jateq/ecommerce/controllers"
+	c "github.com/Jateq/ecommerce/controllers"
 	"github.com/Jateq/ecommerce/database"
 	"github.com/Jateq/ecommerce/middleware"
 	"github.com/Jateq/ecommerce/routes"
@@ -15,7 +15,7 @@ func main() {
 	if port == "" {
 		port = "8000"
 	}
-	app := controllers.NewApplication(database.ProductData(database.Client, "Products"), database.UserData(database.Client, "Users"))
+	app := c.NewApplication(database.ProductData(database.Client, "Products"), database.UserData(database.Client, "Users"))
 	router := gin.New()
 	router.Use(gin.Logger())
 
