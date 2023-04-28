@@ -1,3 +1,3 @@
 # Ecommerce
 
-Realizing final project by myself
+Im selling developers, Like Abay Alenov
