@@ -4,7 +4,7 @@ Im selling developers, Like Abay Alenov
 
 ### `go run main.go`
 
-runs the app at [http://localhost:3000](http://localhost:8000)
+runs the app at [http://localhost:8000](http://localhost:8000)
 
 ## Functionality
 
