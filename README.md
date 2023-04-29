@@ -2,6 +2,10 @@
 
 Im selling developers, Like Abay Alenov
 
+### `go run main.go`
+
+runs the app at [http://localhost:3000](http://localhost:8000)
+
 ## Functionality
 
 - JWT authentication
