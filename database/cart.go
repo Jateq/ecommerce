@@ -18,14 +18,14 @@ func AddProductToCart() error {
 
 }
 
-func RemoveCartItem() {
+func RemoveCartItem() error {
 
 }
 
-func BuyItemFromCart() {
+func BuyItemFromCart() error {
 
 }
 
-func InstantBuyer() {
+func InstantBuyer() error {
 
 }
