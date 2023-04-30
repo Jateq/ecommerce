@@ -10,17 +10,35 @@ import (
 	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
 	"time"
 )
 
-func HashPassword(password string) string {
+var UserCollection *mongo.Collection = database.UserData(database.Client, "Users")
+var ProductCollection *mongo.Collection = database.ProductData(database.Client, "Products")
+var Validate = validator.New()
 
+func HashPassword(password string) string {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	if err != nil {
+		log.Panic(err)
+	}
+	return string(bytes)
 }
 
 func VerifyPassword(userPassword string, givenPassword string) (bool, string) {
+	err := bcrypt.CompareHashAndPassword([]byte(givenPassword), []byte(userPassword))
+	valid := true
+	msg := ""
 
+	if err != nil {
+		msg = "Login or password is incorrect"
+		valid = false
+	}
+	return valid, msg
 }
 
 func SignUp() gin.HandlerFunc {
@@ -35,13 +53,12 @@ func SignUp() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		var Validate = validator.New()
 		validationErr := Validate.Struct(user)
 		if validationErr != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr})
 			return
 		}
-		count, err := database.UserData(database.Client, "UserCollection").CountDocuments(ctx, bson.M{"email": user.Email})
+		count, err := UserCollection.CountDocuments(ctx, bson.M{"email": user.Email})
 		if err != nil {
 			log.Panic(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
@@ -123,10 +140,65 @@ func AddProductAdmin() gin.HandlerFunc {
 
 }
 
-func AllProducts() gin.HandlerFunc {
+func AllProducts() gin.HandlerFunc { // SearchProduct by t
+	return func(c *gin.Context) {
+		var productList []models.Product
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
 
+		cursor, err := ProductCollection.Find(ctx, bson.D{{}}) // empty to return everything
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, "something went wrong, please try later")
+			return
+		}
+		err = cursor.All(ctx, &productList)
+		if err != nil {
+			log.Println(err)
+			c.AbortWithError(500, err)
+		}
+		defer cursor.Close(ctx) //ctx
+		if err := cursor.Err(); err != nil {
+			log.Println(err)
+			c.IndentedJSON(400, "invalid")
+			return
+		}
+		defer cancel()
+		c.IndentedJSON(200, productList)
+	}
 }
 
-func SearchProduct() gin.HandlerFunc {
+func SearchProductByQuery() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var searchProducts []models.Product
+		queryParam := c.Query("name")
 
+		if queryParam == "" {
+			log.Println("query is empty")
+			c.Header("Content-Type", "application/json")
+			c.JSON(http.StatusNotFound, gin.H{"error": "Invalid search index"})
+		}
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+		searchQueryDB, err := ProductCollection.Find(ctx, bson.M{"product_name": bson.M{"&regex": queryParam}})
+		if err != nil {
+			c.IndentedJSON(404, "something went wrong while fetching the data")
+			return
+		}
+
+		err = searchQueryDB.All(ctx, &searchProducts)
+		if err != nil {
+			log.Println(err)
+			c.IndentedJSON(400, "invalid")
+			return
+		}
+		defer searchQueryDB.Close(ctx)
+		if err := searchQueryDB.Err(); err != nil {
+			log.Println(err)
+			c.IndentedJSON(400, "invalid request")
+			return
+		}
+		defer cancel()
+		c.IndentedJSON(200, searchProducts)
+
+	}
 }
