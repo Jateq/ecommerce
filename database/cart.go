@@ -20,7 +20,7 @@ var (
 	ErrCantBuyItem        = errors.New("can't update the purchase")
 )
 
-func AddProductToCart(ctx context.Contex, prodCollection, userCollection *mongo.Collection, productID primitive.ObjectID, userID string) error {
+func AddProductToCart(ctx context.Context, prodCollection, userCollection *mongo.Collection, productID primitive.ObjectID, userID string) error {
 	searchFromDB, err := prodCollection.Find(ctx, bson.M{"_id": productID})
 	if err != nil {
 		log.Println(err)
@@ -48,8 +48,21 @@ func AddProductToCart(ctx context.Contex, prodCollection, userCollection *mongo.
 	return nil
 }
 
-func RemoveCartItem() error {
-
+func RemoveCartItem(ctx context.Context, prodCollection, userCollection mongo.Collection, productID primitive.ObjectID, userID string) error {
+	id, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		log.Println(err)
+		return ErrUserIdIsNotValid
+	}
+	// bson.D is a slice and M is a map
+	filter := bson.D{primitive.E{Key: "_id", Value: id}}
+	update := bson.M{"$pull": bson.M{"usercart": bson.M{"_id": productID}}}
+	_, err = UpdateMany(ctx, filter, update)
+	//_, err = userCollection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		return ErrCantRemoveItemCart
+	}
+	return nil
 }
 
 func BuyItemFromCart() error {
