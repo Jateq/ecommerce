@@ -108,12 +108,13 @@ func Login() gin.HandlerFunc {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
 
+		var foundUser models.User
 		var user models.User
 		if err := c.BindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err})
 			return
 		}
-		err := UserCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&founduser)
+		err := UserCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&foundUser)
 		defer cancel()
 
 		if err != nil {
@@ -121,7 +122,7 @@ func Login() gin.HandlerFunc {
 			return
 		}
 
-		PasswordValid, msg := VerifyPassword(*user.Password, *founduser.Password)
+		PasswordValid, msg := VerifyPassword(*user.Password, *foundUser.Password)
 		defer cancel()
 
 		if !PasswordValid {
@@ -129,15 +130,31 @@ func Login() gin.HandlerFunc {
 			fmt.Println(msg)
 			return
 		}
-		token, refreshToken, _ := tokengen.TokenGenerator(*founduser.Email, *founduser.FirstName, *founduser.LastName, founduser.UserID)
-		tokengen.UpdateAllTokens(token, refreshToken, founduser.UserID)
+		token, refreshToken, _ := tokengen.TokenGenerator(*foundUser.Email, *foundUser.FirstName, *foundUser.LastName, foundUser.UserID)
+		tokengen.UpdateAllTokens(token, refreshToken, foundUser.UserID)
 
-		c.JSON(http.StatusNotFound, founduser)
+		c.JSON(http.StatusNotFound, foundUser)
 	}
 }
 
 func AddProductAdmin() gin.HandlerFunc {
-
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		var products models.Product
+		defer cancel()
+		if err := c.BindJSON(&products); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		products.ProductID = primitive.NewObjectID()
+		_, anyerr := ProductCollection.InsertOne(ctx, products)
+		if anyerr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "not inserted"})
+			return
+		}
+		defer cancel()
+		c.JSON(http.StatusOK, "Successfully added, Hello Admin")
+	}
 }
 
 func AllProducts() gin.HandlerFunc { // SearchProduct by t
