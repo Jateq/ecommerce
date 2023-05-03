@@ -1,18 +1,21 @@
 # Ecommerce
 
 Dropshipping, you can sell whatever you want
+<hr>
 
 To run the app:
 ```bash
 docker-compose up -d
 go run main.go
 ````
+<hr>
+
 If you have MongoDB installed you can run just application
+```bash
+go run main.go
+```
 
-runs the app at: [http://localhost:8000](http://localhost:8000)
-
-You need sign in first
-
+<hr>
 ## Functionality
 
 - JWT authentication
