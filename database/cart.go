@@ -58,8 +58,7 @@ func RemoveCartItem(ctx context.Context, prodCollection, userCollection *mongo.C
 	// bson.D is a slice and M is a map
 	filter := bson.D{primitive.E{Key: "_id", Value: id}}
 	update := bson.M{"$pull": bson.M{"usercart": bson.M{"_id": productID}}}
-	_, err = UpdateMany(ctx, filter, update)
-	//_, err = userCollection.UpdateMany(ctx, filter, update)
+	_, err = userCollection.UpdateMany(ctx, filter, update)
 	if err != nil {
 		return ErrCantRemoveItemCart
 	}
