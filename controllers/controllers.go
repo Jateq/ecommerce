@@ -48,8 +48,6 @@ func SignUp() gin.HandlerFunc {
 
 		var user models.User
 		if err := c.BindJSON(&user); err != nil {
-			//c.JSON{http.StatusBadRequest, gin.H{"error": err.Error()}}
-			//return
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -196,7 +194,7 @@ func SearchProductByQuery() gin.HandlerFunc {
 		}
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
-		searchQueryDB, err := ProductCollection.Find(ctx, bson.M{"product_name": bson.M{"&regex": queryParam}})
+		searchQueryDB, err := ProductCollection.Find(ctx, bson.M{"product_name": bson.M{"$regex": queryParam}})
 		if err != nil {
 			c.IndentedJSON(404, "something went wrong while fetching the data")
 			return
