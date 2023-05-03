@@ -1,7 +1,7 @@
 # Ecommerce
 
 Dropshipping, you can sell whatever you want
-<hr>
+
 
 To run the app:
 ```bash
@@ -15,7 +15,8 @@ If you have MongoDB installed you can run just application
 go run main.go
 ```
 
-<hr>
+
+
 ## Functionality
 
 - JWT authentication
